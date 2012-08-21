@@ -68,7 +68,7 @@ class VERSION:
 	#RELEASE_VERSION = u'2012.1'
 
 	## +=1 this if you changed the savegame "api"
-	SAVEGAMEREVISION = 62
+	SAVEGAMEREVISION = 64
 
 	@staticmethod
 	def string():
@@ -248,6 +248,7 @@ class RES:
 	GRAPES           = 58
 	ALVEARIES        = 59
 	HONEYCOMBS       = 60
+	PLAGUE           = 98
 	FIRE             = 99
 
 class GROUND:

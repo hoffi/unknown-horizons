@@ -600,6 +600,12 @@ CREATE TABLE "fire_disaster" (
 	"remaining_ticks_havoc" INT NOT NULL
 );
 
+CREATE TABLE "plague_disaster" (
+	"disaster" INT NOT NULL, -- disaster and building together make up the key
+	"building" INT NOT NULL,
+	"remaining_ticks_havoc" INT NOT NULL
+);
+
 CREATE TABLE "disaster_manager" (
 	"remaining_ticks" INT NOT NULL -- manager ticks. will only contain one row.
 );

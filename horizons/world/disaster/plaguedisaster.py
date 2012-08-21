@@ -19,55 +19,56 @@
 # Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # ###################################################
+from horizons.component.storagecomponent import StorageComponent
 
 from horizons.world.disaster import Disaster
 from horizons.messaging import AddStatusIcon, RemoveStatusIcon, NewDisaster
-from horizons.world.status import FireStatusIcon
+from horizons.world.status import PlagueStatusIcon
 from horizons.constants import GAME_SPEED, BUILDINGS, RES, TIER
 from horizons.command.building import Build
 from horizons.scheduler import Scheduler
 from horizons.util.python.callback import Callback
 from horizons.util import WorldObject
 
-class FireDisaster(Disaster):
-	"""Simulates a fire.
+class PlagueDisaster(Disaster):
+	"""Simulates a plague.
 
 	Currently only affects settlers.
 	Starts at a certain building and will spread out over time.
 
 	"""
 
-	TYPE = "The Flames Of The End"
-	NOTIFICATION_TYPE = 'BUILDING_ON_FIRE'
+	TYPE = "Plague"
+	NOTIFICATION_TYPE = 'BUILDING_CONTAMINATED'
 
-	SEED_CHANCE = 0.1
+	SEED_CHANCE = 0.5
 
 
 	EXPANSION_RADIUS = 3
 
 	# Defines the mininum number of settler buildings that need to be in a
 	# settlement before this disaster can break loose
-	MIN_SETTLERS_FOR_BREAKOUT = 5
+	MIN_SETTLERS_FOR_BREAKOUT = 10
 
 	DEFAULT_HAVOC_TIME = GAME_SPEED.TICKS_PER_SECOND * 30
 
-	DISASTER_RES = RES.FIRE
+	DISASTER_RES = RES.PLAGUE
 
 	def __init__(self, settlement, manager):
-		super(FireDisaster, self).__init__(settlement, manager)
+		super(PlagueDisaster, self).__init__(settlement, manager)
 		self._affected_buildings = []
 		self.havoc_time = self.DEFAULT_HAVOC_TIME
 
 	def save(self, db):
-		super(FireDisaster, self).save(db)
+		super(PlagueDisaster, self).save(db)
 		for building in self._affected_buildings:
 			ticks = Scheduler().get_remaining_ticks(self, Callback(self.wreak_havoc, building), True)
-			db("INSERT INTO fire_disaster(disaster, building, remaining_ticks_havoc) VALUES(?, ?, ?)",
+			db("INSERT INTO plague_disaster(disaster, building, remaining_ticks_havoc) VALUES(?, ?, ?)",
 			   self.worldid, building.worldid, ticks)
 
 	def load(self, db, worldid):
-		super(FireDisaster, self).load(db, worldid)
-		for building_id, ticks in db("SELECT building, remaining_ticks_havoc FROM fire_disaster WHERE disaster = ?", worldid):
+		super(PlagueDisaster, self).load(db, worldid)
+		for building_id, ticks in db("SELECT building, remaining_ticks_havoc FROM plague_disaster WHERE disaster = ?", worldid):
 			# do half of infect()
 			building = WorldObject.get_object_by_id(building_id)
 			self.log.debug("%s loading disaster %s", self, building)
@@ -88,13 +89,13 @@ class FireDisaster(Disaster):
 		self.expansion_time = (self.havoc_time / 2) - 1
 
 		# breakout after havoc and expansion times are calculated
-		super(FireDisaster, self).breakout()
+		super(PlagueDisaster, self).breakout()
 		self.infect(building)
 		self.log.debug("%s breakout out on %s at %s", self, building, building.position)
 
 	@classmethod
 	def can_breakout(cls, settlement):
-		return settlement.owner.settler_level >= TIER.PIONEERS and \
+		return settlement.owner.settler_level >= TIER.SETTLERS and \
 		       settlement.count_buildings(BUILDINGS.RESIDENTIAL) > cls.MIN_SETTLERS_FOR_BREAKOUT
 
 	def expand(self):
@@ -117,21 +118,21 @@ class FireDisaster(Disaster):
 	def infect(self, building, load=None):
 		"""Infect a building with fire.
 		@load: (db, disaster_worldid), set on restoring infected state of savegame"""
-		super(FireDisaster, self).infect(building, load=load)
+		super(PlagueDisaster, self).infect(building, load=load)
 		# keep in sync with load()
-		AddStatusIcon.broadcast(building, FireStatusIcon(building))
-		NewDisaster.broadcast(building.owner, building, FireDisaster)
+		AddStatusIcon.broadcast(building, PlagueStatusIcon(building))
+		NewDisaster.broadcast(building.owner, building, PlagueDisaster)
 		self._affected_buildings.append(building)
 
 		if load:
 			db, worldid = load
-			self.havoc_time = db("SELECT remaining_ticks_havoc FROM fire_disaster WHERE disaster = ? AND building = ?", worldid, building.worldid)[0][0]
+			self.havoc_time = db("SELECT remaining_ticks_havoc FROM plague_disaster WHERE disaster = ? AND building = ?", worldid, building.worldid)[0][0]
 
 		Scheduler().add_new_object(Callback(self.wreak_havoc, building), self, run_in=self.havoc_time)
 
 	def recover(self, building):
-		super(FireDisaster, self).recover(building)
-		RemoveStatusIcon.broadcast(self, building, FireStatusIcon)
+		super(PlagueDisaster, self).recover(building)
+		RemoveStatusIcon.broadcast(self, building, PlagueStatusIcon)
 		Scheduler().rem_call(self, Callback(self.wreak_havoc, building))
 		self._affected_buildings.remove(building)
 
@@ -139,7 +140,7 @@ class FireDisaster(Disaster):
 		return len(self._affected_buildings) > 0
 
 	def wreak_havoc(self, building):
-		super(FireDisaster, self).wreak_havoc(building)
+		super(PlagueDisaster, self).wreak_havoc(building)
 		self._affected_buildings.remove(building)
 
 		# Create a ruin at buildings position

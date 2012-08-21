@@ -76,6 +76,12 @@ class FireStatusIcon(StatusIcon):
 	icon = 'as_on_fire+idle+45'
 	_helptext = _(u"This building is on fire!")
 
+class PlagueStatusIcon(StatusIcon):
+	""" Plague disaster """
+	priority = 3000
+	icon = 'as_on_plague+idle+45'
+	_helptext = _(u"This building is contaminated!")
+
 
 class SettlerUnhappyStatus(StatusIcon):
 	# threshold is the inhabitants decrease level

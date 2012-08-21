@@ -202,6 +202,9 @@ class SavegameUpgrader(object):
 		# save pirate routine mission
 		db('CREATE TABLE "ai_mission_pirate_routine" ("target_point_x" INTEGER NOT NULL, "target_point_y" INTEGER NOT NULL )')
 
+	def _upgrade_to_rev64(self, db):
+		# create empty disaster tables
+		db('CREATE TABLE "plague_disaster" ( disaster INTEGER NOT NULL, building INTEGER NOT NULL, remaining_ticks_havoc INTEGER NOT NULL )')
 
 	def _upgrade(self):
 		# fix import loop
@@ -250,6 +253,8 @@ class SavegameUpgrader(object):
 				self._upgrade_to_rev62(db)
 			if rev < 63:
 				self._upgrade_to_rev63(db)
+			if rev < 64:
+				self._upgrade_to_rev64(db)
 
 			db('COMMIT')
 			db.close()
