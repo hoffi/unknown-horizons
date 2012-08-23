@@ -22,7 +22,6 @@
 import math
 
 import horizons.main
-from horizons.messaging.message import SettlerUpdate
 
 from horizons.scheduler import Scheduler
 from horizons.util import Callback, WorldObject, Point, Circle, Registry
@@ -31,6 +30,8 @@ from horizons.scenario import CONDITIONS
 from horizons.savegamemanager import SavegameManager
 from horizons.constants import MESSAGES, AUTO_CONTINUE_CAMPAIGN
 from horizons.command.game import PauseCommand, UnPauseCommand
+from horizons.messaging import SettlerUpdate
+from horizons.component.storagecomponent import StorageComponent
 
 
 class ACTIONS(object):
@@ -137,6 +138,14 @@ def wait(session, seconds):
 	"""Postpones any other scenario events for a certain amount of seconds."""
 	delay = Scheduler().get_ticks(seconds)
 	session.scenario_eventhandler.sleep(delay)
+
+@register()
+def alter_inventory(session, resource, amount):
+	"""Alters the inventory of each settlement."""
+	for settlement in session.world.settlements:
+		if settlement.owner == session.world.player and settlement.warehouse:
+			settlement.warehouse.get_component(StorageComponent).inventory.alter(
+					resource, amount)
 
 @register()
 def highlight_position(session, x, y, play_sound=False, color=(0,0,0)):
