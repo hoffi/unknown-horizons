@@ -204,7 +204,7 @@ class SavegameUpgrader(object):
 
 	def _upgrade_to_rev64(self, db):
 		# create empty disaster tables
-		db('CREATE TABLE "plague_disaster" ( disaster INTEGER NOT NULL, building INTEGER NOT NULL, remaining_ticks_havoc INTEGER NOT NULL )')
+		db('CREATE TABLE "disease_disaster" ( disaster INTEGER NOT NULL, building INTEGER NOT NULL, remaining_ticks_havoc INTEGER NOT NULL )')
 
 	def _upgrade(self):
 		# fix import loop

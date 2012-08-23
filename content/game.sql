@@ -273,7 +273,7 @@ INSERT INTO "resource" VALUES(58, 'grapes', 2.5, 1, 1);
 -- tradeable   name   value   id   show_inv
 INSERT INTO "resource" VALUES(59, 'alvearies', 2, 0, 1);
 INSERT INTO "resource" VALUES(60, 'honeycombs', 2.5, 1, 1);
-INSERT INTO "resource" VALUES(98, 'plague', NULL, 0, 0);
+INSERT INTO "resource" VALUES(98, 'disease', NULL, 0, 0);
 INSERT INTO "resource" VALUES(99, 'fire', NULL, 0, 0);
 
 CREATE TABLE "weapon" (

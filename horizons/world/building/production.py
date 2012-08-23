@@ -28,7 +28,7 @@ from horizons.util import Rect
 from horizons.util.shapes.radiusshape import RadiusRect
 from horizons.command.building import Build
 from horizons.scheduler import Scheduler
-from horizons.constants import BUILDINGS, PRODUCTION
+from horizons.constants import BUILDINGS, PRODUCTION, RES
 from horizons.world.production.producer import Producer
 from horizons.component.storagecomponent import StorageComponent
 
@@ -137,4 +137,24 @@ class Mine(BuildingResourceHandler, BuildableSingleOnDeposit, BasicBuilding):
 		super(Mine, self).load(db, worldid)
 		deposit_class = db("SELECT deposit_class FROM mine WHERE rowid = ?", worldid)[0][0]
 		self.__init(deposit_class)
+
+class FireStation(ProductionBuilding):
+	"""A Fire station"""
+	def can_do_jobs(self):
+		return True
+
+	def finished_working(self):
+		pass
+
+class Doctor(ProductionBuilding):
+	"""A doctor"""
+	def can_do_jobs(self):
+		inventory = self.get_component(StorageComponent).inventory
+		res_count = inventory[RES.MEDICAL_HERBS]
+
+		return res_count >= 2
+
+	def finished_working(self):
+		inventory = self.get_component(StorageComponent).inventory
+		inventory.alter(RES.MEDICAL_HERBS, -2)
 

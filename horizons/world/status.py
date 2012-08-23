@@ -76,11 +76,11 @@ class FireStatusIcon(StatusIcon):
 	icon = 'as_on_fire+idle+45'
 	_helptext = _(u"This building is on fire!")
 
-class PlagueStatusIcon(StatusIcon):
+class DiseaseStatusIcon(StatusIcon):
 	""" Plague disaster """
 	priority = 3000
-	icon = 'as_on_plague+idle+45'
-	_helptext = _(u"This building is contaminated!")
+	icon = 'as_on_disease+idle+45'
+	_helptext = _(u"This building is diseased!")
 
 
 class SettlerUnhappyStatus(StatusIcon):

@@ -25,7 +25,7 @@ import logging
 from horizons.world.settlement import Settlement
 from horizons.util import WorldObject
 from horizons.scheduler import Scheduler
-from horizons.constants import GAME_SPEED
+from horizons.constants import GAME_SPEED, BUILDINGS
 from horizons.component.storagecomponent import StorageComponent
 
 class Disaster(WorldObject):
@@ -33,6 +33,7 @@ class Disaster(WorldObject):
 	log = logging.getLogger("world.disaster")
 
 	TYPE = None # string to identify type
+	NOTIFICATION_TYPE = None # string to identify notification type
 
 	# Chance this disaster is seeded into a settlement in a tick of the
 	# disaster manager
@@ -68,7 +69,7 @@ class Disaster(WorldObject):
 
 	def evaluate(self):
 		"""Called to evaluate if this disaster is still active"""
-		raise NotImplementedError()
+		return len(self._affected_buildings) > 0
 
 	def expand(self):
 		"""Called to make the disaster expand further"""
@@ -83,6 +84,15 @@ class Disaster(WorldObject):
 			remnant = building.get_component(StorageComponent).inventory.alter(self.DISASTER_RES, 1)
 			assert remnant == 0, 'remn: '+str(remnant)+" "+str(building)
 
+	def calculate_times(self, building):
+		if hasattr(building, 'havoc_times') and building.havoc_times:
+			multiplicator = building.havoc_times[self.NOTIFICATION_TYPE]["level_incrementor"]
+			start_value = building.havoc_times[self.NOTIFICATION_TYPE]["start_value"]
+			havoc_time_of_building = start_value + (multiplicator * building.level)
+			self.havoc_time = GAME_SPEED.TICKS_PER_SECOND * havoc_time_of_building
+
+		self.expansion_time = (self.havoc_time / 2) - 1
+
 	def recover(self, building):
 		"""Inverse of infect(). Is also called when buildings are torn down by the user."""
 		self.log.debug("%s recovering %s at %s", self, building, building.position)
@@ -96,7 +106,13 @@ class Disaster(WorldObject):
 
 	def breakout(self):
 		"""Picks (a) object(s) to start a breakout."""
+		assert self.can_breakout(self._settlement)
+		possible_buildings = self._settlement.buildings_by_id[BUILDINGS.RESIDENTIAL]
+		building = self._settlement.session.random.choice( possible_buildings )
+		self.calculate_times(building)
 		Scheduler().add_new_object(self.expand, self, run_in=self.expansion_time, loops=-1)
+		self.infect(building)
+		self.log.debug("%s breakout out on %s at %s", self, building, building.position)
 
 	def wreak_havoc(self, building):
 		"""The implementation to whatever the disaster does to affected

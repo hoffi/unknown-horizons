@@ -73,25 +73,6 @@ class FireDisaster(Disaster):
 			self.log.debug("%s loading disaster %s", self, building)
 			self.infect(building, load=(db, worldid))
 
-	def breakout(self):
-		assert self.can_breakout(self._settlement)
-		possible_buildings = self._settlement.buildings_by_id[BUILDINGS.RESIDENTIAL]
-		building = self._settlement.session.random.choice( possible_buildings )
-
-		# Calculate havoc and expansion time depending on building level
-		if hasattr(building, 'havoc_times') and building.havoc_times:
-			multiplicator = building.havoc_times[self.NOTIFICATION_TYPE]["level_incrementor"]
-			start_value = building.havoc_times[self.NOTIFICATION_TYPE]["start_value"]
-			havoc_time_of_building = start_value + (multiplicator * building.level)
-			self.havoc_time = GAME_SPEED.TICKS_PER_SECOND * havoc_time_of_building
-
-		self.expansion_time = (self.havoc_time / 2) - 1
-
-		# breakout after havoc and expansion times are calculated
-		super(FireDisaster, self).breakout()
-		self.infect(building)
-		self.log.debug("%s breakout out on %s at %s", self, building, building.position)
-
 	@classmethod
 	def can_breakout(cls, settlement):
 		return settlement.owner.settler_level >= TIER.PIONEERS and \
@@ -108,6 +89,7 @@ class FireDisaster(Disaster):
 			for tile in self._settlement.get_tiles_in_radius(building.position, self.EXPANSION_RADIUS, False):
 				if tile.object is not None and tile.object.id == BUILDINGS.RESIDENTIAL and tile.object not in self._affected_buildings:
 					if self._settlement.session.random.random() <= self.SEED_CHANCE:
+						self.calculate_times(tile.object)
 						self.infect(tile.object)
 						return
 
@@ -134,9 +116,6 @@ class FireDisaster(Disaster):
 		RemoveStatusIcon.broadcast(self, building, FireStatusIcon)
 		Scheduler().rem_call(self, Callback(self.wreak_havoc, building))
 		self._affected_buildings.remove(building)
-
-	def evaluate(self):
-		return len(self._affected_buildings) > 0
 
 	def wreak_havoc(self, building):
 		super(FireDisaster, self).wreak_havoc(building)

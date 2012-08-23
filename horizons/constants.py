@@ -248,7 +248,7 @@ class RES:
 	GRAPES           = 58
 	ALVEARIES        = 59
 	HONEYCOMBS       = 60
-	PLAGUE           = 98
+	DISEASE           = 98
 	FIRE             = 99
 
 class GROUND:

@@ -1,6 +1,6 @@
 id: 42
 name: _ Doctor
-baseclass: production.ProductionBuilding
+baseclass: production.Doctor
 radius: 10
 cost: 20
 cost_inactive: 5
@@ -10,11 +10,11 @@ inhabitants: 2
 tooltip_text: _ Treats diseases. Consumes herbs.
 settler_level: TIER.SETTLERS
 buildingcosts: {RES.GOLD: 500, RES.BOARDS: 3, RES.TOOLS: 3, RES.BRICKS: 3}
-show_status_icons: false
+show_status_icons: true
 components:
 - SelectableComponent:
     type: building
-    tabs: [ProductionOverviewTab,]
+    tabs: [DoctorOverviewTab,]
     enemy_tabs: [EnemyBuildingOverviewTab,]
 - HealthComponent: {maxhealth: 1000}
 - ProducerComponent:
@@ -23,12 +23,12 @@ components:
         consumes:
         - [RES.MEDICAL_HERBS, -2]
         time: 60
-      PLAGUE:
+      DISEASE:
         consumes:
-        - [RES.PLAGUE, -1]
+        - [RES.DISEASE, -1]
 - StorageComponent:
       SlotsStorage:
-        slot_sizes: {RES.MEDICAL_HERBS: 8, RES.PLAGUE: 10}
+        slot_sizes: {RES.MEDICAL_HERBS: 8, RES.DISEASE: 10}
 - CollectingComponent:
     collectors:
       UNITS.BUILDING_COLLECTOR: 1

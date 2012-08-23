@@ -362,10 +362,12 @@ class DisasterRecoveryCollector(StorageCollector):
 		building = self.job.object
 		if hasattr(building, "disaster"): # make sure that building hasn't recovered any other way
 			building.disaster.recover(building)
+			self.home_building.finished_working()
 
 	def get_job(self):
-		if self.home_building is not None and \
-		   not self.session.world.disaster_manager.is_affected( self.home_building.settlement ):
+		if (self.home_building is not None and \
+		   not self.session.world.disaster_manager.is_affected(self.home_building.settlement)) or \
+			not self.home_building.can_do_jobs():
 			return None # not one disaster active, bail out
 
 		return super(DisasterRecoveryCollector, self).get_job()

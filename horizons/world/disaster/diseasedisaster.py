@@ -19,27 +19,26 @@
 # Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # ###################################################
-from horizons.component.storagecomponent import StorageComponent
 
 from horizons.world.disaster import Disaster
 from horizons.messaging import AddStatusIcon, RemoveStatusIcon, NewDisaster
-from horizons.world.status import PlagueStatusIcon
+from horizons.world.status import DiseaseStatusIcon
 from horizons.constants import GAME_SPEED, BUILDINGS, RES, TIER
 from horizons.command.building import Build
 from horizons.scheduler import Scheduler
 from horizons.util.python.callback import Callback
 from horizons.util import WorldObject
 
-class PlagueDisaster(Disaster):
-	"""Simulates a plague.
+class DiseaseDisaster(Disaster):
+	"""Simulates a disease.
 
 	Currently only affects settlers.
 	Starts at a certain building and will spread out over time.
 
 	"""
 
-	TYPE = "Plague"
-	NOTIFICATION_TYPE = 'BUILDING_CONTAMINATED'
+	TYPE = "Disease"
+	NOTIFICATION_TYPE = 'BUILDING_DISEASED'
 
 	SEED_CHANCE = 0.5
 
@@ -52,46 +51,27 @@ class PlagueDisaster(Disaster):
 
 	DEFAULT_HAVOC_TIME = GAME_SPEED.TICKS_PER_SECOND * 30
 
-	DISASTER_RES = RES.PLAGUE
+	DISASTER_RES = RES.DISEASE
 
 	def __init__(self, settlement, manager):
-		super(PlagueDisaster, self).__init__(settlement, manager)
+		super(DiseaseDisaster, self).__init__(settlement, manager)
 		self._affected_buildings = []
 		self.havoc_time = self.DEFAULT_HAVOC_TIME
 
 	def save(self, db):
-		super(PlagueDisaster, self).save(db)
+		super(DiseaseDisaster, self).save(db)
 		for building in self._affected_buildings:
 			ticks = Scheduler().get_remaining_ticks(self, Callback(self.wreak_havoc, building), True)
-			db("INSERT INTO plague_disaster(disaster, building, remaining_ticks_havoc) VALUES(?, ?, ?)",
+			db("INSERT INTO disease_disaster(disaster, building, remaining_ticks_havoc) VALUES(?, ?, ?)",
 			   self.worldid, building.worldid, ticks)
 
 	def load(self, db, worldid):
-		super(PlagueDisaster, self).load(db, worldid)
-		for building_id, ticks in db("SELECT building, remaining_ticks_havoc FROM plague_disaster WHERE disaster = ?", worldid):
+		super(DiseaseDisaster, self).load(db, worldid)
+		for building_id, ticks in db("SELECT building, remaining_ticks_havoc FROM disease_disaster WHERE disaster = ?", worldid):
 			# do half of infect()
 			building = WorldObject.get_object_by_id(building_id)
 			self.log.debug("%s loading disaster %s", self, building)
 			self.infect(building, load=(db, worldid))
-
-	def breakout(self):
-		assert self.can_breakout(self._settlement)
-		possible_buildings = self._settlement.buildings_by_id[BUILDINGS.RESIDENTIAL]
-		building = self._settlement.session.random.choice( possible_buildings )
-
-		# Calculate havoc and expansion time depending on building level
-		if hasattr(building, 'havoc_times') and building.havoc_times:
-			multiplicator = building.havoc_times[self.NOTIFICATION_TYPE]["level_incrementor"]
-			start_value = building.havoc_times[self.NOTIFICATION_TYPE]["start_value"]
-			havoc_time_of_building = start_value + (multiplicator * building.level)
-			self.havoc_time = GAME_SPEED.TICKS_PER_SECOND * havoc_time_of_building
-
-		self.expansion_time = (self.havoc_time / 2) - 1
-
-		# breakout after havoc and expansion times are calculated
-		super(PlagueDisaster, self).breakout()
-		self.infect(building)
-		self.log.debug("%s breakout out on %s at %s", self, building, building.position)
 
 	@classmethod
 	def can_breakout(cls, settlement):
@@ -109,6 +89,7 @@ class PlagueDisaster(Disaster):
 			for tile in self._settlement.get_tiles_in_radius(building.position, self.EXPANSION_RADIUS, False):
 				if tile.object is not None and tile.object.id == BUILDINGS.RESIDENTIAL and tile.object not in self._affected_buildings:
 					if self._settlement.session.random.random() <= self.SEED_CHANCE:
+						self.calculate_times(tile.object)
 						self.infect(tile.object)
 						return
 
@@ -118,29 +99,26 @@ class PlagueDisaster(Disaster):
 	def infect(self, building, load=None):
 		"""Infect a building with fire.
 		@load: (db, disaster_worldid), set on restoring infected state of savegame"""
-		super(PlagueDisaster, self).infect(building, load=load)
+		super(DiseaseDisaster, self).infect(building, load=load)
 		# keep in sync with load()
-		AddStatusIcon.broadcast(building, PlagueStatusIcon(building))
-		NewDisaster.broadcast(building.owner, building, PlagueDisaster)
+		AddStatusIcon.broadcast(building, DiseaseStatusIcon(building))
+		NewDisaster.broadcast(building.owner, building, DiseaseDisaster)
 		self._affected_buildings.append(building)
 
 		if load:
 			db, worldid = load
-			self.havoc_time = db("SELECT remaining_ticks_havoc FROM plague_disaster WHERE disaster = ? AND building = ?", worldid, building.worldid)[0][0]
+			self.havoc_time = db("SELECT remaining_ticks_havoc FROM disease_disaster WHERE disaster = ? AND building = ?", worldid, building.worldid)[0][0]
 
 		Scheduler().add_new_object(Callback(self.wreak_havoc, building), self, run_in=self.havoc_time)
 
 	def recover(self, building):
-		super(PlagueDisaster, self).recover(building)
-		RemoveStatusIcon.broadcast(self, building, PlagueStatusIcon)
+		super(DiseaseDisaster, self).recover(building)
+		RemoveStatusIcon.broadcast(self, building, DiseaseStatusIcon)
 		Scheduler().rem_call(self, Callback(self.wreak_havoc, building))
 		self._affected_buildings.remove(building)
 
-	def evaluate(self):
-		return len(self._affected_buildings) > 0
-
 	def wreak_havoc(self, building):
-		super(PlagueDisaster, self).wreak_havoc(building)
+		super(DiseaseDisaster, self).wreak_havoc(building)
 		self._affected_buildings.remove(building)
 
 		# Create a ruin at buildings position

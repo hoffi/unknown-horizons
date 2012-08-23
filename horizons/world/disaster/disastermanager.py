@@ -26,7 +26,7 @@ from horizons.world.disaster.firedisaster import FireDisaster
 from horizons.scheduler import Scheduler
 from horizons.constants import GAME_SPEED
 from horizons.util import WorldObject
-from horizons.world.disaster.plaguedisaster import PlagueDisaster
+from horizons.world.disaster.diseasedisaster import DiseaseDisaster
 
 class DisasterManager(object):
 	"""The disaster manager manages disasters. It seeds them into the
@@ -46,7 +46,7 @@ class DisasterManager(object):
 		self.session = session
 		self.disabled = disabled
 		# List of possible disaster classes
-		self.disasters = [FireDisaster, PlagueDisaster]
+		self.disasters = [FireDisaster, DiseaseDisaster]
 
 		# Mapping settlement -> active disasters
 		self._active_disaster = {}

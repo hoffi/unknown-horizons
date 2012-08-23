@@ -26,7 +26,7 @@ from fife.extensions import pychan
 
 from horizons.command.production import ToggleActive
 from horizons.command.building import Tear
-from horizons.constants import GAME_SPEED, PRODUCTION
+from horizons.constants import GAME_SPEED, PRODUCTION, RES
 from horizons.gui.tabs import OverviewTab
 from horizons.gui.util import load_uh_widget
 from horizons.gui.widgets.imagefillstatusbutton import ImageFillStatusButton
@@ -178,4 +178,18 @@ class SmallProductionOverviewTab(ProductionOverviewTab):
 		productions = set([p for p in all_farm_productions
 		                     for res in p.get_consumed_resources().keys()
 		                   if res in possible_res])
+		return sorted(productions, key=operator.methodcaller('get_production_line_id'))
+
+class DoctorOverviewTab(ProductionOverviewTab):
+	def  __init__(self, instance):
+		super(DoctorOverviewTab, self).__init__(
+			widget = 'overview_doctor.xml',
+			instance = instance
+		)
+
+	def get_displayed_productions(self):
+		all_productions = self.instance.get_component(Producer).get_productions()
+		productions = set([p for p in all_productions
+		                   for res in p.get_consumed_resources().keys()
+		                   if res is not RES.DISEASE])
 		return sorted(productions, key=operator.methodcaller('get_production_line_id'))

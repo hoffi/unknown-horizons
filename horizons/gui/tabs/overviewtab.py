@@ -116,3 +116,4 @@ class FireStationOverviewTab(OverviewTab):
 			widget = 'overview_firestation.xml',
 			instance = instance
 		)
+
