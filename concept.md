@@ -64,4 +64,7 @@ win:
 
 > Use the keys defined in the [name].yaml
 
+### Scenario Editor
+
+> TBD
 
