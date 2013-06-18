@@ -68,3 +68,16 @@ win:
 
 > TBD (Maybe as webapp?)
 
+
+## Campaigns
+
+### Directory Structure
+
++ scenarios/
+  + [campaign-name]/
+     + shared_images/
+     + shared_translations/
+     + package-info.yaml
+     + [scenario1_name]/
+     + [scenario2_name]/
+     + [...]/
