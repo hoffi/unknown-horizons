@@ -11,7 +11,7 @@
 
 ### package-info.yaml
 
-> Work in progress...
+> Contains all informations about this Scenario
 
 ```yaml
 name: "[scenario-name]"
@@ -21,29 +21,43 @@ author-email: "[your-email]"
 created: "[dd-mm-yyyy]"
 short-description: "[...]"
 description: "[...]"
+map-file: "..."
 ```
 
 ### [name].yaml
 
-> Work in progress...
+> Contains all events for this scenario
 
 ```yaml
 intro:
  text-key: "KEY_OF_TRANSLATION"
  delayed: [0..x]
  
-main:
- -
-  type: [task|story]
-  text-key: "KEY_OF_TRANSLATION"
-  preconditions:
-   -
-    type: [start|resource|...]
-    condition: [lt|gt|eq]
-    item: [? eg. "gold"]
-    value: [? eg "100"]
-  actions:
-   -
-    type: [message|resource]
-    ...
+events:
+ - type: [task|story]
+   text-key: "KEY_OF_TRANSLATION"
+   preconditions:
+    - type: [lt|gt|eq|...]
+      item: ["gold", 100]
+   actions:
+    - type: [message|resource]
+      arguments: ["This is a message"|"gold", +100|"gold", -100]
+
+win:
+ text-key: "KEY_OF_WIN_MESSAGE_TRANSLATION"
+ - condition:
+  - type: [lt|gt|eq|...]
+    item: ["gold", 200]
 ```
+
+### images/
+
+> Contains all images for this Scenario that should be shown in the logbook
+
+### translations/
+
+> Contains all translations for this Scenario that should be shown in the logbook
+
+> Use the keys defined in the [name].yaml
+
+
