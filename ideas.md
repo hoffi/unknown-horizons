@@ -1,4 +1,4 @@
-## Concept Scenarios
+## Scenarios Ideas
 
 ### Directory Structure
 
