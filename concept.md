@@ -58,6 +58,10 @@ win:
 
 > Contains all translations for this Scenario that should be shown in the logbook
 
+> Maybe use something like 'Markdown' for Text-Formatting?
+
+> '#' for Headlines, '!(DESCRIPTION)[PATH]' for images, '---' for hr.png
+
 > Use the keys defined in the [name].yaml
 
 
