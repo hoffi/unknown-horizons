@@ -66,5 +66,5 @@ win:
 
 ### Scenario Editor
 
-> TBD
+> TBD (Maybe as webapp?)
 
