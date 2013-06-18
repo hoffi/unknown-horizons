@@ -81,3 +81,20 @@ win:
      + [scenario1_name]/
      + [scenario2_name]/
      + [...]/
+
+### shared_images/
+
+> Contains all images that will be shared and are available in all scenarios of this Campaign
+
+### shared_translations/
+
+> Same as images just for translations
+
+### package-info.yaml
+
+> Contains basic infos of this campaign
+
+### [scenarioX_name]/
+
+> A scenario of this campaign (see above for its directory structure)
+
